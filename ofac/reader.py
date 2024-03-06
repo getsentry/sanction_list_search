@@ -103,6 +103,39 @@ def printSubjects(bin_to_id):
     for reference, names in bin_to_id.items():
         print(reference, names)
 
+import csv
+import io
+import sys
+
+def import_test_entities(filename):
+    # reads a semi-colon value separated file, one entity per list
+    # format is id;name
+    with io.open(filename, 'r', newline='', encoding='utf-8') as csvfile:
+        cvs_reader = csv.DictReader(csvfile, delimiter=';')
+        try:
+            subjects = []
+            rows = list(cvs_reader)  # read it all into memory
+            for row in rows:
+                value = (row['id'], row['name'])
+                subjects.append(value)
+            return subjects
+        except csv.Error as e:
+            sys.exit('file {}, line {}: {}'.format(filename, cvs_reader.line_num, e))
+
+def execute_test_queries(name_to_id_map, filename="internal_test_queries.csv"):
+    test_subjects = import_test_subjects(filename)
+    test_subject_count = len(test_subjects)
+    total_matches = 0
+    total_records = 0
+    matches = []
+    print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
+    for (id, name) in test_subjects:
+        if name in name_to_id_map.keys():
+            matches.append((id, name, name_to_id_map[name]))
+
+    for match in matches:
+        print("{} {} {} \n".format(match[0], match[1], match[2]))
+    print("\nFound in total {} matches, searched for {} customers.".format(len(matches), test_subject_count))
 
 if __name__ == "__main__":
     start = timer()
@@ -114,8 +147,10 @@ if __name__ == "__main__":
     print("Loaded {} entities and {} persons".format(len(id_to_name_entities_sdn),
                                                      len(id_to_name_persons_sdn)))
 
-    printSubjects(entity_name_to_id_map)
-    print(len(id_to_name_entities_sdn))
-    print(len(entity_name_to_id_map))
+    #printSubjects(entity_name_to_id_map)
+    #print(len(id_to_name_entities_sdn))
+    #print(len(entity_name_to_id_map))
     # printSubjects(id_to_name_persons_sdn)
-    print(len(id_to_name_persons_sdn))
+    #print(len(id_to_name_persons_sdn))
+
+    execute_test_queries(entity_name_to_id_map, "sentry_entity_name_list.csv")
