@@ -55,6 +55,7 @@ def load_consolidated_sanctions(cons_filename='cons_advanced.xml'):
 def load_sanctions(sanction_list):
     id_to_name_entities = {}
     id_to_name_persons = {}
+    entity_name_to_id_map = {}
 
     sanctioned_parties = sanction_list.DistinctParties.get_DistinctParty()
 
@@ -92,8 +93,10 @@ def load_sanctions(sanction_list):
                 id_to_name_persons[party.FixedRef] = (name_aliases, dates)
             else:  # not a person, type 3 is a company
                 id_to_name_entities[party.FixedRef] = (name_aliases, [])
+                for name in name_aliases:
+                    entity_name_to_id_map[name] = party.FixedRef
 
-    return (id_to_name_persons, id_to_name_entities)
+    return (id_to_name_persons, id_to_name_entities, entity_name_to_id_map)
 
 
 def printSubjects(bin_to_id):
@@ -104,16 +107,15 @@ def printSubjects(bin_to_id):
 if __name__ == "__main__":
     start = timer()
 
-    (id_to_name_persons_sdn, id_to_name_entities_sdn) = load_sdn_sanctions()
+    (id_to_name_persons_sdn, id_to_name_entities_sdn, entity_name_to_id_map) = load_sdn_sanctions()
 
     end = timer()
     print("Total time usage for loading SDN and consolidated list: {} ms".format(int(10 ** 3 * (end - start) + 0.5)))
     print("Loaded {} entities and {} persons".format(len(id_to_name_entities_sdn),
                                                      len(id_to_name_persons_sdn)))
 
-    printSubjects(id_to_name_entities_sdn)
+    printSubjects(entity_name_to_id_map)
     print(len(id_to_name_entities_sdn))
-    print(type(id_to_name_entities_sdn))
+    print(len(entity_name_to_id_map))
     # printSubjects(id_to_name_persons_sdn)
     print(len(id_to_name_persons_sdn))
-
