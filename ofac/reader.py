@@ -123,7 +123,7 @@ def import_test_entities(filename):
             sys.exit('file {}, line {}: {}'.format(filename, cvs_reader.line_num, e))
 
 def execute_test_queries(name_to_id_map, filename="internal_test_queries.csv"):
-    test_subjects = import_test_subjects(filename)
+    test_subjects = import_test_entities(filename)
     test_subject_count = len(test_subjects)
     total_matches = 0
     total_records = 0
@@ -138,12 +138,8 @@ def execute_test_queries(name_to_id_map, filename="internal_test_queries.csv"):
     print("\nFound in total {} matches, searched for {} customers.".format(len(matches), test_subject_count))
 
 if __name__ == "__main__":
-    start = timer()
-
     (id_to_name_persons_sdn, id_to_name_entities_sdn, entity_name_to_id_map) = load_sdn_sanctions()
 
-    end = timer()
-    print("Total time usage for loading SDN and consolidated list: {} ms".format(int(10 ** 3 * (end - start) + 0.5)))
     print("Loaded {} entities and {} persons".format(len(id_to_name_entities_sdn),
                                                      len(id_to_name_persons_sdn)))
 
