@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from dataobjects import NamePart
 from dataobjects import NameAlias
 from datetime import datetime
-from ofac import sdn as parser
+import sdn as parser
 
 
 def extract_dates(DatePeriod):
@@ -42,7 +42,7 @@ def create_single_date(date):
 
 
 
-def load_sdn_sanctions(sdn_filename='sdn_advanced.xml'):
+def load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml'):
     sdn_list = parser.parse(sdn_filename, silence=True)
     return load_sanctions(sdn_list)
 
@@ -104,15 +104,16 @@ def printSubjects(bin_to_id):
 if __name__ == "__main__":
     start = timer()
 
-    (id_to_name_persons_cons, id_to_name_entities_cons) = load_consolidated_sanctions()
     (id_to_name_persons_sdn, id_to_name_entities_sdn) = load_sdn_sanctions()
 
     end = timer()
     print("Total time usage for loading SDN and consolidated list: {} ms".format(int(10 ** 3 * (end - start) + 0.5)))
-    print("Loaded {} entities and {} persons".format(len(id_to_name_entities_cons) + len(id_to_name_persons_cons),
-                                                     len(id_to_name_persons_sdn) + len(id_to_name_entities_sdn)))
+    print("Loaded {} entities and {} persons".format(len(id_to_name_entities_sdn),
+                                                     len(id_to_name_persons_sdn)))
 
-    printSubjects(id_to_name_entities_cons)
-    printSubjects(id_to_name_persons_cons)
     printSubjects(id_to_name_entities_sdn)
-    printSubjects(id_to_name_persons_sdn)
+    print(len(id_to_name_entities_sdn))
+    print(type(id_to_name_entities_sdn))
+    # printSubjects(id_to_name_persons_sdn)
+    print(len(id_to_name_persons_sdn))
+

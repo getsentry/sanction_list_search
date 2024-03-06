@@ -7,6 +7,7 @@ from collections import Counter
 from reader import load_sanctions
 from dataobjects import NamePart
 from dataobjects import NameAlias
+import sdn as parser
 
 dmeta = fuzzy.DMetaphone()
 
@@ -242,14 +243,14 @@ def import_test_subjects(filename):
             subjects = []
             rows = list(cvs_reader)  # read it all into memory
             for row in rows:
-                value = (row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['id'])
+                value = (row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['id'])                
                 subjects.append(value)
             return subjects
         except csv.Error as e:
             sys.exit('file {}, line {}: {}'.format(filename, cvs_reader.line_num, e))
 
 
-def execute_test_queries():
+def execute_test_queries(id_to_name_persons):
     #filename = "test_queries.csv"
     filename = "internal_test_queries.csv"  # file intentionally not in git
     test_subjects = import_test_subjects(filename)
@@ -260,7 +261,7 @@ def execute_test_queries():
     all_results = []
     counter = 0
     print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
-    for (firstname, lastname, birthdate, gender, id) in test_subjects:
+    for (firstname, lastname, birthdate, gender, id) in test_subjects:        
         workdone = counter / test_subject_count
 
         wholename = firstname + " " + lastname
@@ -270,9 +271,9 @@ def execute_test_queries():
             total_records += len(matches)
             for m in matches:
                 (candidate_id, similarity_score, candidate_name) = m
-                result = (id, wholename, candidate_name, "EU_{}".format(candidate_id), similarity_score)
+                result = (id, wholename, candidate_name, "OFAC_{}".format(candidate_id), similarity_score)
                 all_results.append(result)
-        print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
+        #print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
         counter += 1
 
     end = timer()
@@ -280,36 +281,67 @@ def execute_test_queries():
     print("\n")  # end progress-line
 
     # sort the output on similarity ratio before printing
-    all_results.sort(key=lambda tup: tup[4], reverse=True)  # sort by ratio, descending
+    #all_results.sort(key=lambda tup: tup[4], reverse=True)  # sort by ratio, descending
+    all_results.sort(key=lambda tup: tup[1], reverse=False)  # sort by wholename, ascending
     for result in all_results:
         (id, wholename, candidate_name, list_entry_id, similarity_score) = result
-        print("{}, {}, {}, {:.2f}".format(id, wholename, candidate_name, similarity_score))
+        print("{},{},{},{},{:.2f}".format(id, wholename, candidate_name, list_entry_id, similarity_score))
     
     print("\nFound in total {} matches on {} list-subjects. Searched for {} customers.".format(total_records, total_matches, test_subject_count))
     print("Total time usage for searching: {}s ({}ns per query)".format(int(time_use_s + 0.5), int(10 ** 6 * time_use_s / test_subject_count + 0.5)))
 
+def load_consolidated_sanctions(cons_filename='cons_advanced.xml'):
+    consolidated_list = parser.parse(cons_filename, silence=True)
+    return load_sanctions(consolidated_list)
+
+
+def load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml'):
+    sdn_list = parser.parse(sdn_filename, silence=True)
+    return load_sanctions(sdn_list)
 
 if __name__ == "__main__":
-    mem_start = memory_usage_resource()
+    #mem_start = memory_usage_resource()
+    '''
+    (id_to_name_persons_cons, id_to_name_entities_cons) = load_consolidated_sanctions()
 
-    (id_to_name_persons, id_to_name_entities) = load_sanctions('eu_global_full.xml')
+    stop_words_persons = find_noise_words(id_to_name_persons_cons)
+    stop_words_entities = find_noise_words(id_to_name_entities_cons)
 
-    stop_words_persons = find_noise_words(id_to_name_persons)
-    stop_words_entities = find_noise_words(id_to_name_entities)
+    bin_to_id_persons = compute_phonetic_bin_lookup_table(id_to_name_persons_cons, stop_words_persons)
+    bin_to_id_entities = compute_phonetic_bin_lookup_table(id_to_name_entities_cons, stop_words_entities)
 
-    bin_to_id_persons = compute_phonetic_bin_lookup_table(id_to_name_persons, stop_words_persons)
-    bin_to_id_entities = compute_phonetic_bin_lookup_table(id_to_name_entities, stop_words_entities)
+    #print("Most common name parts for persons are", stop_words_persons)
+    #print("Most common name parts for entities are", stop_words_entities)
 
-    mem_end = memory_usage_resource()
+    #print("Computed", len(bin_to_id_persons), "phonetic bins for", len(id_to_name_persons_cons), "list subjects of type person.")
+    #print_longest_overflow_bin_length(bin_to_id_persons, "person")
+    #print("Computed", len(bin_to_id_entities), "phonetic bins for", len(id_to_name_entities_cons), "list subjects of type entity.")
+    #print_longest_overflow_bin_length(bin_to_id_entities, "entity")
 
-    print("Most common name parts for persons are", stop_words_persons)
-    print("Most common name parts for entities are", stop_words_entities)
+    execute_test_queries(id_to_name_persons=id_to_name_persons_cons)
 
-    print("Computed", len(bin_to_id_persons), "phonetic bins for", len(id_to_name_persons), "list subjects of type person.")
-    print_longest_overflow_bin_length(bin_to_id_persons, "person")
-    print("Computed", len(bin_to_id_entities), "phonetic bins for", len(id_to_name_entities), "list subjects of type entity.")
-    print_longest_overflow_bin_length(bin_to_id_entities, "entity")
+    '''
+    (id_to_name_persons_sdn, id_to_name_entities_sdn) = load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml')
 
-    print("Memory usage of sanction-list data structures are", mem_end - mem_start, "MB")
+    stop_words_persons = find_noise_words(id_to_name_persons_sdn)
+    stop_words_entities = find_noise_words(id_to_name_entities_sdn)
 
-    execute_test_queries()
+    bin_to_id_persons = compute_phonetic_bin_lookup_table(id_to_name_persons_sdn, stop_words_persons)
+    bin_to_id_entities = compute_phonetic_bin_lookup_table(id_to_name_entities_sdn, stop_words_entities)
+
+    print(len(id_to_name_persons_sdn))
+    print(len(id_to_name_entities_sdn))
+
+    #print("Most common name parts for persons are", stop_words_persons)
+    #print("Most common name parts for entities are", stop_words_entities)
+
+    #print("Computed", len(bin_to_id_persons), "phonetic bins for", len(id_to_name_persons_sdn), "list subjects of type person.")
+    #print_longest_overflow_bin_length(bin_to_id_persons, "person")
+    #print("Computed", len(bin_to_id_entities), "phonetic bins for", len(id_to_name_entities_sdn), "list subjects of type entity.")
+    #print_longest_overflow_bin_length(bin_to_id_entities, "entity")
+
+    execute_test_queries(id_to_name_persons=id_to_name_persons_sdn)
+    
+    #mem_end = memory_usage_resource()
+    #print("Memory usage of sanction-list data structures are", mem_end - mem_start, "MB")
+

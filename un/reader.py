@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from dataobjects import NamePart
 from dataobjects import NameAlias
 
-from un import un_global as parser
+import un_global as parser
 
 
 def load_sanctions(filename='consolidated.xml'):

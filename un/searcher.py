@@ -270,7 +270,7 @@ def execute_test_queries():
             total_records += len(matches)
             for m in matches:
                 (candidate_id, similarity_score, candidate_name) = m
-                result = (id, wholename, candidate_name, "EU_{}".format(candidate_id), similarity_score)
+                result = (id, wholename, candidate_name, "UN_{}".format(candidate_id), similarity_score)
                 all_results.append(result)
         print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
         counter += 1
@@ -283,8 +283,8 @@ def execute_test_queries():
     all_results.sort(key=lambda tup: tup[4], reverse=True)  # sort by ratio, descending
     for result in all_results:
         (id, wholename, candidate_name, list_entry_id, similarity_score) = result
-        print("{}, {}, {}, {:.2f}".format(id, wholename, candidate_name, similarity_score))
-    
+        print("{}, {}, {}, {}, {:.2f}".format(id, wholename, candidate_name, list_entry_id, similarity_score))
+
     print("\nFound in total {} matches on {} list-subjects. Searched for {} customers.".format(total_records, total_matches, test_subject_count))
     print("Total time usage for searching: {}s ({}ns per query)".format(int(time_use_s + 0.5), int(10 ** 6 * time_use_s / test_subject_count + 0.5)))
 
@@ -292,13 +292,17 @@ def execute_test_queries():
 if __name__ == "__main__":
     mem_start = memory_usage_resource()
 
-    (id_to_name_persons, id_to_name_entities) = load_sanctions('eu_global_full.xml')
+    (id_to_name_persons, id_to_name_entities) = load_sanctions()
+    #for k, v in id_to_name_persons.items():
+    #    print(k, v)
 
     stop_words_persons = find_noise_words(id_to_name_persons)
     stop_words_entities = find_noise_words(id_to_name_entities)
 
     bin_to_id_persons = compute_phonetic_bin_lookup_table(id_to_name_persons, stop_words_persons)
     bin_to_id_entities = compute_phonetic_bin_lookup_table(id_to_name_entities, stop_words_entities)
+
+    execute_test_queries()
 
     mem_end = memory_usage_resource()
 
@@ -312,4 +316,3 @@ if __name__ == "__main__":
 
     print("Memory usage of sanction-list data structures are", mem_end - mem_start, "MB")
 
-    execute_test_queries()
