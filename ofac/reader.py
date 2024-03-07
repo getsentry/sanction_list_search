@@ -94,7 +94,7 @@ def load_sanctions(sanction_list):
             else:  # not a person, type 3 is a company
                 id_to_name_entities[party.FixedRef] = (name_aliases, [])
                 for name in name_aliases:
-                    entity_name_to_id_map[name] = party.FixedRef
+                    entity_name_to_id_map[str(name)] = party.FixedRef
 
     return (id_to_name_persons, id_to_name_entities, entity_name_to_id_map)
 
