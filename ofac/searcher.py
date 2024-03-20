@@ -252,7 +252,7 @@ def import_test_subjects(filename):
 
 def execute_test_queries(id_to_name_persons):
     #filename = "test_queries.csv"
-    filename = "internal_test_queries_sentry.csv"  # file intentionally not in git
+    filename = "sentry_user_name_list.csv"  # file intentionally not in git
     test_subjects = import_test_subjects(filename)
     test_subject_count = len(test_subjects)
     start = timer()
