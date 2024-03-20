@@ -321,7 +321,7 @@ if __name__ == "__main__":
     execute_test_queries(id_to_name_persons=id_to_name_persons_cons)
 
     '''
-    (id_to_name_persons_sdn, id_to_name_entities_sdn) = load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml')
+    (id_to_name_persons_sdn, id_to_name_entities_sdn, entity_name_to_id_map) = load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml')
 
     stop_words_persons = find_noise_words(id_to_name_persons_sdn)
     stop_words_entities = find_noise_words(id_to_name_entities_sdn)
