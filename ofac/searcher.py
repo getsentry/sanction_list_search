@@ -236,14 +236,14 @@ import sys
 
 def import_test_subjects(filename):
     # reads a semi-colon value separated file, one person per list
-    # format is firstname;lastname;birthdate;gender
+    # format is firstname;lastname;birthdate;gender;customer_type
     with io.open(filename, 'r', newline='', encoding='utf-8') as csvfile:
         cvs_reader = csv.DictReader(csvfile, delimiter=';')
         try:
             subjects = []
             rows = list(cvs_reader)  # read it all into memory
             for row in rows:
-                value = (row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['id'])                
+                value = (row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['id'], row['customer_type'])
                 subjects.append(value)
             return subjects
         except csv.Error as e:
@@ -252,7 +252,7 @@ def import_test_subjects(filename):
 
 def execute_test_queries(id_to_name_persons):
     #filename = "test_queries.csv"
-    filename = "internal_test_queries.csv"  # file intentionally not in git
+    filename = "internal_test_queries_sentry.csv"  # file intentionally not in git
     test_subjects = import_test_subjects(filename)
     test_subject_count = len(test_subjects)
     start = timer()
@@ -261,7 +261,7 @@ def execute_test_queries(id_to_name_persons):
     all_results = []
     counter = 0
     print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
-    for (firstname, lastname, birthdate, gender, id) in test_subjects:        
+    for (firstname, lastname, birthdate, gender, id, customer_type) in test_subjects:
         workdone = counter / test_subject_count
 
         wholename = firstname + " " + lastname
@@ -271,7 +271,7 @@ def execute_test_queries(id_to_name_persons):
             total_records += len(matches)
             for m in matches:
                 (candidate_id, similarity_score, candidate_name) = m
-                result = (id, wholename, candidate_name, "OFAC_{}".format(candidate_id), similarity_score)
+                result = (id, wholename, candidate_name, "OFAC_{}".format(candidate_id), customer_type, similarity_score)
                 all_results.append(result)
         #print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
         counter += 1
@@ -284,8 +284,8 @@ def execute_test_queries(id_to_name_persons):
     #all_results.sort(key=lambda tup: tup[4], reverse=True)  # sort by ratio, descending
     all_results.sort(key=lambda tup: tup[1], reverse=False)  # sort by wholename, ascending
     for result in all_results:
-        (id, wholename, candidate_name, list_entry_id, similarity_score) = result
-        print("{},{},{},{},{:.2f}".format(id, wholename, candidate_name, list_entry_id, similarity_score))
+        (id, wholename, candidate_name, list_entry_id, customer_type, similarity_score) = result
+        print("{};{};{};{};{};{:.2f}".format(id, wholename, candidate_name, list_entry_id, customer_type, similarity_score))
     
     print("\nFound in total {} matches on {} list-subjects. Searched for {} customers.".format(total_records, total_matches, test_subject_count))
     print("Total time usage for searching: {}s ({}ns per query)".format(int(time_use_s + 0.5), int(10 ** 6 * time_use_s / test_subject_count + 0.5)))
