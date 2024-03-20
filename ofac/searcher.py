@@ -236,7 +236,7 @@ import sys
 
 def import_test_subjects(filename):
     # reads a semi-colon value separated file, one person per list
-    # format is firstname;lastname;birthdate;gender;customer_type
+    # format is id;firstname;lastname;birthdate;gender;customer_type
     with io.open(filename, 'r', newline='', encoding='utf-8') as csvfile:
         cvs_reader = csv.DictReader(csvfile, delimiter=';')
         try:
