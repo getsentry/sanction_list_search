@@ -285,7 +285,7 @@ def execute_test_queries(id_to_name_persons):
     all_results.sort(key=lambda tup: tup[1], reverse=False)  # sort by wholename, ascending
     for result in all_results:
         (id, wholename, candidate_name, list_entry_id, customer_type, similarity_score, subscription_cost_usd) = result
-        print("{};{};{};{};{};{:.2f};{:.2f}".format(id, wholename, candidate_name, list_entry_id, customer_type, similarity_score, subscription_cost_usd))
+        print("{};{};{};{};{};{:.2f};{}".format(id, wholename, candidate_name, list_entry_id, customer_type, similarity_score, subscription_cost_usd))
     
     print("\nFound in total {} matches on {} list-subjects. Searched for {} customers.".format(total_records, total_matches, test_subject_count))
     print("Total time usage for searching: {}s ({}ns per query)".format(int(time_use_s + 0.5), int(10 ** 6 * time_use_s / test_subject_count + 0.5)))
