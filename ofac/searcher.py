@@ -243,7 +243,7 @@ def import_test_subjects(filename):
             subjects = []
             rows = list(cvs_reader)  # read it all into memory
             for row in rows:
-                value = (row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['id'], row['customer_type'])
+                value = (row['id'], row['firstname'], row['lastname'], row['birthdate'], row['gender'], row['customer_type'], row['subscription_cost_usd'])
                 subjects.append(value)
             return subjects
         except csv.Error as e:
@@ -261,7 +261,7 @@ def execute_test_queries(id_to_name_persons):
     all_results = []
     counter = 0
     print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
-    for (firstname, lastname, birthdate, gender, id, customer_type, subscription_cost_usd) in test_subjects:
+    for (id, firstname, lastname, birthdate, gender, customer_type, subscription_cost_usd) in test_subjects:
         workdone = counter / test_subject_count
 
         wholename = firstname + " " + lastname
