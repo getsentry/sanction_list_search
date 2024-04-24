@@ -261,7 +261,7 @@ def execute_test_queries(id_to_name_persons):
     all_results = []
     counter = 0
     print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
-    for (firstname, lastname, birthdate, gender, id, customer_type) in test_subjects:
+    for (firstname, lastname, birthdate, gender, id, customer_type, subscription_cost_usd) in test_subjects:
         workdone = counter / test_subject_count
 
         wholename = firstname + " " + lastname
@@ -271,7 +271,7 @@ def execute_test_queries(id_to_name_persons):
             total_records += len(matches)
             for m in matches:
                 (candidate_id, similarity_score, candidate_name) = m
-                result = (id, wholename, candidate_name, "OFAC_{}".format(candidate_id), customer_type, similarity_score)
+                result = (id, wholename, candidate_name, "OFAC_{}".format(candidate_id), customer_type, similarity_score, subscription_cost_usd)
                 all_results.append(result)
         #print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
         counter += 1
@@ -284,8 +284,8 @@ def execute_test_queries(id_to_name_persons):
     #all_results.sort(key=lambda tup: tup[4], reverse=True)  # sort by ratio, descending
     all_results.sort(key=lambda tup: tup[1], reverse=False)  # sort by wholename, ascending
     for result in all_results:
-        (id, wholename, candidate_name, list_entry_id, customer_type, similarity_score) = result
-        print("{};{};{};{};{};{:.2f}".format(id, wholename, candidate_name, list_entry_id, customer_type, similarity_score))
+        (id, wholename, candidate_name, list_entry_id, customer_type, similarity_score, subscription_cost_usd) = result
+        print("{};{};{};{};{};{:.2f};{:.2f}".format(id, wholename, candidate_name, list_entry_id, customer_type, similarity_score, subscription_cost_usd))
     
     print("\nFound in total {} matches on {} list-subjects. Searched for {} customers.".format(total_records, total_matches, test_subject_count))
     print("Total time usage for searching: {}s ({}ns per query)".format(int(time_use_s + 0.5), int(10 ** 6 * time_use_s / test_subject_count + 0.5)))
