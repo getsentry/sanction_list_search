@@ -1,3 +1,11 @@
+Niraj's Notes
+------------
+`ofac/searcher.py` has user matcher that uses phonetics/this library. \
+Can be run using, `python3 -m searcher` from the `ofac` directory.
+
+`ofac/reader.py` has naiive, string-based entity matching. \
+Can be run using, `python3 -m reader` from the `ofac` directory.
+
 Overview
 ------------
 Parses the sdn and consolidated ofac list in their advanced xml format, using the xsd. 
