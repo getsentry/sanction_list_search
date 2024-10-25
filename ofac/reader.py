@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-
+import argparse
+import csv
+import io
+import sys
+import sdn as parser
 from timeit import default_timer as timer
 from dataobjects import NamePart
 from dataobjects import NameAlias
 from datetime import datetime
-import sdn as parser
 
 
 def extract_dates(DatePeriod):
@@ -38,8 +41,6 @@ def create_single_date(date):
         day = "0" + day
 
     return datetime.strptime("{} {} {}".format(date.Year.valueOf_, month, day), '%Y %m %d')
-
-
 
 
 def load_sdn_sanctions(sdn_filename='sdn_advanced_2024.xml'):
@@ -103,50 +104,64 @@ def printSubjects(bin_to_id):
     for reference, names in bin_to_id.items():
         print(reference, names)
 
-import csv
-import io
-import sys
 
 def import_test_entities(filename):
     # reads a semi-colon value separated file, one entity per list
-    # format is id;name
+    # format is id;name;organization_id
     with io.open(filename, 'r', newline='', encoding='utf-8') as csvfile:
         cvs_reader = csv.DictReader(csvfile, delimiter=';')
         try:
             subjects = []
             rows = list(cvs_reader)  # read it all into memory
             for row in rows:
-                value = (row['id'], row['name'])
+                value = (row['id'], row['name'], row['organization_id'])
                 subjects.append(value)
             return subjects
         except csv.Error as e:
             sys.exit('file {}, line {}: {}'.format(filename, cvs_reader.line_num, e))
 
-def execute_test_queries(name_to_id_map, filename="internal_test_queries.csv"):
-    test_subjects = import_test_entities(filename)
-    test_subject_count = len(test_subjects)
-    total_matches = 0
-    total_records = 0
-    matches = []
-    print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, filename))
-    for (id, name) in test_subjects:
-        if name in name_to_id_map.keys():
-            matches.append((id, name, name_to_id_map[name]))
 
+def write_output_psv(filename, matches):
+    with open(filename, 'w') as f:
+        writer = csv.writer(f, delimiter='|')
+        writer.writerow(["id", "name", "organization_id", "ofac_sdn_id"])
+        for match in matches:
+            writer.writerow(match)
+    print(f"Output written to {filename}")
+
+
+def execute_test_queries(name_to_id_map, sentry_entity_filename, output_file_path):
+    test_subjects = import_test_entities(sentry_entity_filename)
+    test_subject_count = len(test_subjects)
+
+    matches = []
+    print("Searching for {} test-subjects read from file '{}'".format(test_subject_count, sentry_entity_filename))
+    for (id, name, organization_id) in test_subjects:
+        if name in name_to_id_map.keys():
+            matches.append((id, name, organization_id, name_to_id_map[name]))
+
+    print("id, name, organization_id, sdn_id")
     for match in matches:
-        print("{} {} {} \n".format(match[0], match[1], match[2]))
+        print("{} {} {} {} \n".format(match[0], match[1], match[2], match[3]))
     print("\nFound in total {} matches, searched for {} customers.".format(len(matches), test_subject_count))
 
+    write_output_psv(output_file_path, matches)
+
+
 if __name__ == "__main__":
-    (id_to_name_persons_sdn, id_to_name_entities_sdn, entity_name_to_id_map) = load_sdn_sanctions()
+    arg_parser = argparse.ArgumentParser(description="Process OFAC sanctions data and find matches")
+    arg_parser.add_argument("--sdn_advanced_file_path", "-s", help="Path to the sdn_advanced.xml file")
+    arg_parser.add_argument("--search_entities_file_path", "-e", help="Path to the list of entities to run search for")
+    arg_parser.add_argument("--output_file_path", "-o", help="Path to the output list of matched entities")
+    args = arg_parser.parse_args()
+
+    (id_to_name_persons_sdn, id_to_name_entities_sdn, entity_name_to_id_map) = load_sdn_sanctions(sdn_filename=args.sdn_advanced_file_path)
 
     print("Loaded {} entities and {} persons".format(len(id_to_name_entities_sdn),
                                                      len(id_to_name_persons_sdn)))
 
-    #printSubjects(entity_name_to_id_map)
-    #print(len(id_to_name_entities_sdn))
-    #print(len(entity_name_to_id_map))
-    # printSubjects(id_to_name_persons_sdn)
-    #print(len(id_to_name_persons_sdn))
-
-    execute_test_queries(entity_name_to_id_map, "sentry_entity_name_list.csv")
+    execute_test_queries(
+        entity_name_to_id_map, 
+        sentry_entity_filename=args.search_entities_file_path,
+        output_file_path=args.output_file_path
+    )
