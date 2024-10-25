@@ -106,10 +106,10 @@ def printSubjects(bin_to_id):
 
 
 def import_test_entities(filename):
-    # reads a semi-colon value separated file, one entity per list
-    # format is id;name;organization_id
+    # reads a pipe separated file,
+    # format is id|name|organization_id
     with io.open(filename, 'r', newline='', encoding='utf-8') as csvfile:
-        cvs_reader = csv.DictReader(csvfile, delimiter=';')
+        cvs_reader = csv.DictReader(csvfile, delimiter='|')
         try:
             subjects = []
             rows = list(cvs_reader)  # read it all into memory
